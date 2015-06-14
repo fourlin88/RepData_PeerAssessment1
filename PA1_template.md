@@ -73,13 +73,12 @@ print(OriginalMedian)
 
 ```r
 DataGroupedByInterval <- ddply(Data, c("interval"), summarise,
-               sum = sum(steps,na.rm=TRUE),
                mean = mean(steps,na.rm=TRUE)
 )
 
 ggplot(DataGroupedByInterval,aes(interval,mean))+
   geom_line(colour="red")+
-  labs(title="Time Series Plot of steps every 5 min interval", x="5-min Interval", y="steps")
+  labs(title="Time Series Plot of steps every 5 min interval", x="5-min Interval", y="Average steps")
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
@@ -94,8 +93,8 @@ DataGroupedByInterval[DataGroupedByInterval$mean == max(DataGroupedByInterval$me
 ```
 
 ```
-##     interval   sum     mean
-## 104      835 10927 206.1698
+##     interval     mean
+## 104      835 206.1698
 ```
 
 
@@ -207,36 +206,54 @@ the dataset with the filled-in missing values for this part.
 
 
 
+```r
+ImputingData$weekdays <- factor(format(as.Date(ImputingData$date), "%A"))
+levels(ImputingData$weekdays)
+```
 
-1. Make a panel plot containing a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was created using **simulated data**:
+```
+## [1] "Friday"    "Monday"    "Saturday"  "Sunday"    "Thursday"  "Tuesday"  
+## [7] "Wednesday"
+```
 
-![Sample panel plot](instructions_fig/sample_panelplot.png) 
+```r
+levels(ImputingData$weekdays) <- list(weekday = c("Monday", "Tuesday",
+                                             "Wednesday", 
+                                             "Thursday", "Friday"),
+                                 weekend = c("Saturday", "Sunday"))
+levels(ImputingData$weekdays)
+```
 
+```
+## [1] "weekday" "weekend"
+```
 
-**Your plot will look different from the one above** because you will
-be using the activity monitor data. Note that the above plot was made
-using the lattice system but you can make the same version of the plot
-using any plotting system you choose.
+```r
+table(ImputingData$weekdays)
+```
 
-
-## Submitting the Assignment
-
-To submit the assignment:
-
-1. Commit your completed `PA1_template.Rmd` file to the `master` branch of your git repository (you should already be on the `master` branch unless you created new ones)
-
-2. Commit your `PA1_template.md` and `PA1_template.html` files produced by processing your R markdown file with the `knit2html()` function in R (from the **knitr** package)
-
-3. If your document has figures included (it should) then they should have been placed in the `figure/` directory by default (unless you overrode the default). Add and commit the `figure/` directory to your git repository.
-
-4. Push your `master` branch to GitHub.
-
-5. Submit the URL to your GitHub repository for this assignment on the course web site.
-
-In addition to submitting the URL for your GitHub repository, you will
-need to submit the 40 character SHA-1 hash (as string of numbers from
-0-9 and letters from a-f) that identifies the repository commit that
-contains the version of the files you want to submit. You can do this
-in GitHub by doing the following:
+```
+## 
+## weekday weekend 
+##   12960    4608
+```
 
 
+2. Make a panel plot containing a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
+
+
+
+```r
+ImputingDataGroupedByInterval <- ddply(ImputingData, c("interval","weekdays"), summarise,
+               mean = mean(steps)
+)
+
+library(lattice)
+xyplot(ImputingDataGroupedByInterval$mean ~ ImputingDataGroupedByInterval$interval | ImputingDataGroupedByInterval$weekdays, 
+       layout = c(1, 2), type = "l",
+       xlab = "Interval", ylab = "Average steps")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-10-1.png) 
+
+####*From the plot, there was a slight difference in the pattern between weekends and weekdays. The peak happened during weekdays.*
